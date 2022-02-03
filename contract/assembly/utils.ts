@@ -2,7 +2,7 @@ import { u128 } from 'near-sdk-as';
 
 export type AccountID = string;
 
-export type ApplicationData = Array<string>;
+export type ApplicationData = string[];
 
 export type JobID = string;
 
