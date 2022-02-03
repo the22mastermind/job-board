@@ -1,5 +1,5 @@
 import { Context, RNG } from 'near-sdk-as';
-import { ApplicationData, JobID } from "./utils";
+import { JobID } from "./utils";
 import { applications } from "./storage";
 
 /**
@@ -23,7 +23,6 @@ export class Job {
         this.description = jobDesc;
         this.type = jobType;
         this.postedBy = Context.sender;
-
     }
 
     /**
@@ -37,12 +36,4 @@ export class Job {
         }
         return result;
     }
-}
-
-@nearBindgen
-export class Application {
-    constructor(
-        public jobId: JobID,
-        public data: ApplicationData,
-    ) {}
 }
