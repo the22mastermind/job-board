@@ -17326,7 +17326,7 @@ __exportStar(require("./browser-connect"), exports);
 require("error-polyfill");
 
 },{"./key_stores/browser-index":"../node_modules/near-api-js/lib/key_stores/browser-index.js","./common-index":"../node_modules/near-api-js/lib/common-index.js","./browser-connect":"../node_modules/near-api-js/lib/browser-connect.js","error-polyfill":"../node_modules/error-polyfill/index.js"}],"config.js":[function(require,module,exports) {
-var CONTRACT_NAME = "dev-1643232046714-68054461435659" || 'job-board';
+var CONTRACT_NAME = "dev-1643744622686-69960108730252" || 'job-board';
 
 function getConfig(env) {
   switch (env) {
@@ -17445,9 +17445,9 @@ function _initContract() {
             _context.next = 7;
             return new _nearApiJs.Contract(window.walletConnection.account(), nearConfig.contractName, {
               // View methods are read only. They don't modify the state, but usually return some value.
-              viewMethods: ['getGreeting'],
+              viewMethods: ['get_job'],
               // Change methods can modify the state. But you don't receive the returned value when called.
-              changeMethods: ['setGreeting']
+              changeMethods: ['post_job']
             });
 
           case 7:
@@ -17513,7 +17513,7 @@ document.querySelector('form').onsubmit = /*#__PURE__*/function () {
             fieldset.disabled = true;
             _context.prev = 3;
             _context.next = 6;
-            return window.contract.setGreeting({
+            return window.contract.post_job({
               // pass the value that the user entered in the greeting field
               message: greeting.value
             });
@@ -17610,7 +17610,7 @@ function _fetchGreeting() {
         switch (_context2.prev = _context2.next) {
           case 0:
             _context2.next = 2;
-            return contract.getGreeting({
+            return contract.get_job({
               accountId: window.accountId
             });
 
@@ -17664,7 +17664,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "44375" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "34947" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
