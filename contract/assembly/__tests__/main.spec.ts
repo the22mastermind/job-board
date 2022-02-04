@@ -1,5 +1,5 @@
 import { Context, VMContext } from 'near-sdk-as';
-import { post_job, apply_job } from '..';
+import { post_job, apply_job, fetch_jobs } from '..';
 import { jobs, applications } from '../storage';
 import { ApplicationData, GAS } from '../utils';
 
@@ -83,5 +83,28 @@ describe('Apply to a job', () => {
 
     expect(currentApplications.length).toBe(2, 'Should contain two applications');
     expect(currentApplications[1]).toStrictEqual(Context.sender, 'Should contain ID of Jane');
+  })
+})
+
+describe('Fetch jobs', () => {
+  beforeEach(() => {
+    VMContext.setAttached_deposit(GAS);
+    VMContext.setSigner_account_id(JOHN);
+  });
+
+  it('Should retrieve no jobs', () => {
+    
+    expect(jobs.length).toStrictEqual(0, 'should contain no jobs');
+  })
+
+  it('Should retrieve 2 jobs', () => {
+    const title = 'UI/UX Designer';
+    post_job(TITLE, DESCRIPTION, TYPE);
+    post_job(title, DESCRIPTION, TYPE);
+
+    const postedJobs = fetch_jobs();
+    
+    expect(postedJobs.length).toBe(2, 'should contain 2 jobs');
+    expect(postedJobs[1].title).toStrictEqual(title, `Job title should be ${title}`);
   })
 })

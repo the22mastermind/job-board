@@ -1,4 +1,4 @@
-import { Context, logging } from 'near-sdk-as';
+import { Context, logging, PersistentUnorderedMap, PersistentVector } from 'near-sdk-as';
 import { Job } from './model';
 import { JobID, ApplicationData } from './utils';
 import { jobs, applications } from './storage';
@@ -48,7 +48,6 @@ function checkJobId(jobId: JobID): void {
  * @param jobId
  */
 export function apply_job(jobId: JobID): void {
-  // checkJobId(jobId);
   const applicant = Context.sender;
   let application: ApplicationData = [];
 
@@ -65,4 +64,13 @@ export function apply_job(jobId: JobID): void {
 
   applications.set(jobId, application);
   logging.log("Application submitted successfully!");
+}
+
+/**
+ * Fetch all the jobs
+ * @returns An array of all the jobs
+ */
+export function fetch_jobs(): PersistentVector<Job> {
+  assert(jobs.length > 0, 'No jobs found!');
+  return jobs;
 }
