@@ -1,5 +1,5 @@
 import { Context, VMContext } from 'near-sdk-as';
-import { post_job, apply_job, fetch_jobs } from '..';
+import { post_job, apply_job, fetch_jobs, get_job } from '..';
 import { jobs, applications } from '../storage';
 import { ApplicationData, GAS } from '../utils';
 
@@ -56,7 +56,12 @@ describe('Apply to a job', () => {
   })
 
   it('A candidate applies to a job', () => {
+    VMContext.setSigner_account_id(CREATOR);
+
     const jobId = post_job(TITLE, DESCRIPTION, TYPE);
+
+    // Apply as John
+    VMContext.setSigner_account_id(JOHN);
     apply_job(jobId);
 
     const currentApplications = applications.get(jobId) as ApplicationData;
@@ -66,7 +71,12 @@ describe('Apply to a job', () => {
   })
 
   it('Two candidates apply to the same job', () => {
+    VMContext.setSigner_account_id(CREATOR);
+
     const jobId = post_job(TITLE, DESCRIPTION, TYPE);
+
+    VMContext.setSigner_account_id(JOHN);
+
     // Apply as John
     apply_job(jobId);
 
@@ -95,6 +105,15 @@ describe('Fetch jobs', () => {
   it('Should retrieve no jobs', () => {
     
     expect(jobs.length).toStrictEqual(0, 'should contain no jobs');
+  })
+
+  it('Should retrieve one job given its ID', () => {
+    const jobId = post_job(TITLE, DESCRIPTION, TYPE);
+    const jobDetails = get_job(jobId);
+    
+    expect(jobDetails.length).toBe(1, 'should contain 1 job');
+    expect(jobDetails[0].title).toStrictEqual(TITLE, `Job title should be ${TITLE}`);
+    expect(jobDetails[0].id).toStrictEqual(jobId, 'Job ID should match');
   })
 
   it('Should retrieve 2 jobs', () => {
