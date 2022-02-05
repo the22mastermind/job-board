@@ -17,60 +17,40 @@ Step 0: Installation
 
       near login
 
-5. Create a subaccount (replace `YOUR-NAME` below with your actual account name):
+5. Run `near dev-deploy out/main.wasm` to deploy the contract on testnet
 
-      near create-account job-board.YOUR-NAME.testnet --masterAccount YOUR-NAME.testnet
+6. Copy the Account_id in the returned response. It looks like: `dev-1643744622686-69960108730252`. This is our contract name
 
-5. Run `export CONTRACT_NAME=job-board.YOUR-NAME.testnet`
+7. Run `export CONTRACT_NAME=ACCOUNT_ID_COPIED_ABOVE`
 
-6. Run `export ACCOUNT_ID=YOUR-NAME.testnet`
+8. Run `export ACCOUNT_ID=YOUR-NAME.testnet`
 
+9. Head over `https://wallet.testnet.near.org/` and create a new account to use as APPLICANT_ACCOUNT_ID
 
-Step 1: Create an account for the contract
-------------------------------------------
+10. Run `export APPLICANT_ACCOUNT_ID=APPLICANT_ACCOUNT_ID.testnet`
 
-Each account on NEAR can have at most one contract deployed to it. If you've already created an account such as `your-name.testnet`, you can deploy your contract to `job-board.your-name.testnet`. Assuming you've already created an account on [NEAR Wallet], here's how to create `job-board.your-name.testnet`:
+11. Deploy the contract to testnet
+      
+      Run `yarn dev:deploy:contract`
 
-1. Authorize NEAR CLI, following the commands it gives you:
+12. Interract with the deployed contract using scripts:
+      
+      Run `yarn post_job` to create a new job
+      
+      Run `yarn fetch_jobs` to retrieve all the jobs
 
-      near login
+      Run `yarn get_job` to retrieve a job by its ID
 
-2. Create a subaccount (replace `YOUR-NAME` below with your actual account name):
-
-      near create-account job-board.YOUR-NAME.testnet --masterAccount YOUR-NAME.testnet
-
-
-Step 2: set contract name in code
----------------------------------
-
-Modify the line in `src/config.js` that sets the account name of the contract. Set it to the account id you used above.
-
-    const CONTRACT_NAME = process.env.CONTRACT_NAME || 'job-board.YOUR-NAME.testnet'
+      Run `yarn apply_job` to apply to a job
 
 
-Step 3: deploy!
----------------
-
-One command:
-
-    yarn deploy
-
-As you can see in `package.json`, this does two things:
-
-1. builds & deploys smart contract to NEAR TestNet
-2. builds & deploys frontend code to GitHub using [gh-pages]. This will only work if the project already has a repository set up on GitHub. Feel free to modify the `deploy` script in `package.json` to deploy elsewhere.
-
-
-Troubleshooting
-===============
-
-On Windows, if you're seeing an error containing `EPERM` it may be related to spaces in your path. Please see [this issue](https://github.com/zkat/npx/issues/209) for more details.
-
-
-  [create-near-app]: https://github.com/near/create-near-app
-  [Node.js]: https://nodejs.org/en/download/package-manager/
-  [jest]: https://jestjs.io/
-  [NEAR accounts]: https://docs.near.org/docs/concepts/account
-  [NEAR Wallet]: https://wallet.testnet.near.org/
-  [near-cli]: https://github.com/near/near-cli
-  [gh-pages]: https://github.com/tschaub/gh-pages
+References
+-------------------------------------
+  
+[create-near-app]: https://github.com/near/create-near-app
+[Node.js]: https://nodejs.org/en/download/package-manager/
+[jest]: https://jestjs.io/
+[NEAR accounts]: https://docs.near.org/docs/concepts/account
+[NEAR Wallet]: https://wallet.testnet.near.org/
+[near-cli]: https://github.com/near/near-cli
+[gh-pages]: https://github.com/tschaub/gh-pages

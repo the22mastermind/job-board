@@ -1,4 +1,4 @@
-import { Context, logging, PersistentUnorderedMap, PersistentVector } from 'near-sdk-as';
+import { Context, logging, PersistentVector } from 'near-sdk-as';
 import { Job } from './model';
 import { JobID, ApplicationData } from './utils';
 import { jobs, applications } from './storage';
@@ -25,7 +25,7 @@ export function post_job(title: string, description: string, jobType: string): J
  * @returns job details from an array of all the jobs
  */
 export function get_job(jobId: JobID): Job[] {
-  checkJobId(jobId);
+  checkJobsExist(jobId);
   let result: Job[] = [];
   for(let i = 0; i < jobs.length; i++) {
     if(jobs[i].id == jobId) {
@@ -36,11 +36,11 @@ export function get_job(jobId: JobID): Job[] {
 }
 
 /**
- * Checks if game ID exists.
+ * Checks if jobs exist (not empty)
  * @param jobId
  */
-function checkJobId(jobId: JobID): void {
-  assert(applications.contains(jobId), "Job ID not found!");
+function checkJobsExist(jobId: JobID): void {
+  assert(!jobs.isEmpty, "No jobs found!");
 }
 
 /**
@@ -55,9 +55,13 @@ export function apply_job(jobId: JobID): void {
     application = applications.get(jobId) as ApplicationData;
   }
 
+  // Check if applicant is not the Job creator
+  const jobDetails = get_job(jobId);
+  checkApplicantIsNotOwner(jobDetails[0].postedBy);
+
   // Check if applicant hasn't already applied to a job
   for(let i = 0; i < application.length; i ++) {
-    assert(application[i] != jobId, 'You have already applied to this job!');
+    assert(application[i] != applicant, 'You have already applied to this job!');
   }
 
   application.push(applicant);
@@ -73,4 +77,12 @@ export function apply_job(jobId: JobID): void {
 export function fetch_jobs(): PersistentVector<Job> {
   assert(jobs.length > 0, 'No jobs found!');
   return jobs;
+}
+
+/**
+ * Prevents Job creator to apply to his job
+ * @param accountId
+ */
+ function checkApplicantIsNotOwner(postedBy: string): void {
+  assert(Context.sender != postedBy, "You cannot apply to your own Job! Please sign in with another account");
 }
