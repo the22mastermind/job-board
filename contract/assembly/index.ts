@@ -1,7 +1,11 @@
 import { Context, logging, PersistentVector } from 'near-sdk-as';
-import { Job } from './model';
-import { JobID, ApplicationData } from './utils';
+import { Application, Job } from './model';
+import { JobID, JobTags } from './utils';
 import { jobs, applications } from './storage';
+import { generateId } from './helper';
+
+
+// CHANGE METHODS (They change contract state)
 
 /**
  * Creates a new job and returns the job id
@@ -10,9 +14,18 @@ import { jobs, applications } from './storage';
  * @param jobType
  * @returns JobID
  */
-export function post_job(title: string, description: string, jobType: string): JobID {
-  const job = new Job(title, description, jobType);
-  const jobId = job.id;
+export function postNewJob(title: string, description: string, jobType: string, salary: string, experience: string, tags: JobTags): JobID {
+  let jobId: string;
+  const currentJobIds: string[] = [];
+
+  for(let i = 0; i < jobs.length; i++) {
+    currentJobIds.push(jobs[i].id);
+  }
+
+  jobId = generateId('JOB-', currentJobIds);
+
+  const job = new Job(jobId, title, description, jobType, salary, experience, tags);
+  
   logging.log(`Job: "${title}" created by "${job.postedBy}"`);
   jobs.push(job);
 
@@ -20,11 +33,43 @@ export function post_job(title: string, description: string, jobType: string): J
 }
 
 /**
+ * Apply to a job by recording jobID along with accountIDs of candidates)
+ * @param jobId
+ */
+export function applyToJob(jobId: JobID): void {
+  const applicant = Context.sender;
+  let applicationId: string;
+  const currentApplicationIds: string[] = [];
+
+  for(let i = 0; i < applications.length; i++) {
+    // Check if applicant hasn't already applied to a job
+    assert(applications[i].applicantId != applicant, 'You have already applied to this job!');
+
+    currentApplicationIds.push(applications[i].id);
+  }
+
+  applicationId = generateId('APPL-', currentApplicationIds);
+
+  // Check if applicant is not the Job creator
+  const jobDetails = getJobById(jobId);
+  checkApplicantIsNotOwner(jobDetails.postedBy);
+
+  const newApplication = new Application(applicationId, jobId);
+
+  applications.push(newApplication);
+
+  logging.log(`Application submitted successfully!`);
+}
+
+
+// VIEW METHODS  (They don't change contract state)
+
+/**
  * Retrieves a job by its ID
  * @param jobId
  * @returns job details from an array of all the jobs
  */
-export function get_job(jobId: JobID): Job[] {
+export function getJobById(jobId: JobID): Job {
   checkJobsExist(jobId);
   let result: Job[] = [];
   for(let i = 0; i < jobs.length; i++) {
@@ -32,8 +77,33 @@ export function get_job(jobId: JobID): Job[] {
       result.push(jobs[i]);
     }
   }
-  return result;
+  return result[0];
 }
+
+/**
+ * Fetch all the jobs
+ * @returns An array of all the jobs
+ */
+export function fetchJobs(): PersistentVector<Job> {
+  return jobs;
+}
+
+/**
+ * Fetch applications submitted for a job
+ * @returns An array of applications for a job
+ */
+export function getApplicants(jobId: JobID): Application[]{
+  let candidates: Application[] = [];
+  for(let i = 0; i < applications.length; i++) {
+    if(applications[i].jobId == jobId) {
+      candidates.push(applications[i]);
+    }
+  }
+  return candidates;
+}
+
+
+// HELPER METHODS
 
 /**
  * Checks if jobs exist (not empty)
@@ -41,42 +111,6 @@ export function get_job(jobId: JobID): Job[] {
  */
 function checkJobsExist(jobId: JobID): void {
   assert(!jobs.isEmpty, "No jobs found!");
-}
-
-/**
- * Apply to a job by recording jobID along with accountIDs of candidates)
- * @param jobId
- */
-export function apply_job(jobId: JobID): void {
-  const applicant = Context.sender;
-  let application: ApplicationData = [];
-
-  if(applications.contains(jobId)) {
-    application = applications.get(jobId) as ApplicationData;
-  }
-
-  // Check if applicant is not the Job creator
-  const jobDetails = get_job(jobId);
-  checkApplicantIsNotOwner(jobDetails[0].postedBy);
-
-  // Check if applicant hasn't already applied to a job
-  for(let i = 0; i < application.length; i ++) {
-    assert(application[i] != applicant, 'You have already applied to this job!');
-  }
-
-  application.push(applicant);
-
-  applications.set(jobId, application);
-  logging.log("Application submitted successfully!");
-}
-
-/**
- * Fetch all the jobs
- * @returns An array of all the jobs
- */
-export function fetch_jobs(): PersistentVector<Job> {
-  assert(jobs.length > 0, 'No jobs found!');
-  return jobs;
 }
 
 /**
