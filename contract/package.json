@@ -6,7 +6,8 @@
   "scripts": {
     "build": "asb",
     "build:debug": "asb --target debug",
-    "test": "asp --nologo"
+    "asp": "asp --verbose --nologo",
+    "test": "yarn asp -f main.spec"
   },
   "dependencies": {
     "near-sdk-as": "3.1.0"

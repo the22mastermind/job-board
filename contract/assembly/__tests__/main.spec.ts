@@ -1,129 +1,164 @@
 import { Context, VMContext } from 'near-sdk-as';
-import { post_job, apply_job, fetch_jobs, get_job } from '..';
+import { postNewJob, applyToJob, fetchJobs, getJobById, getApplicants } from '..';
 import { jobs, applications } from '../storage';
-import { ApplicationData, GAS } from '../utils';
+import { GAS } from '../utils';
 
 const CREATOR = "jirf.testnet";
 const TITLE = 'Senior Blockchain Developer';
 const DESCRIPTION = 'Senior Blockchain Developer wanted ASAP.';
 const TYPE = 'Full-Time';
+const SALARY = '$2000';
+const XP = 'Expert';
+const TAGS = [
+  'Blockchain',
+  'Smart Contract',
+  'Software Developement',
+  'React',
+  'NEAR',
+];
+
 const JOHN = 'john.testnet';
 const JANE = 'jane.testnet';
 
-describe('Creates a new job', () => {
+describe('postNewJob()', () => {
   beforeEach(() => {
     VMContext.setAttached_deposit(GAS);
     VMContext.setSigner_account_id(CREATOR);
   });
 
-  it('should retrieve no jobs', () => {
-    expect(jobs.length).toBe(0, 'should contain no jobs');
-  })
-
   it('should create a new job', () => {
-    const jobId = post_job(TITLE, DESCRIPTION, TYPE);
+    const jobId = postNewJob(TITLE, DESCRIPTION, TYPE, SALARY, XP, TAGS);
 
     expect(jobs.length).toBe(1, 'should contain one job');
     expect(jobs[0].id).toStrictEqual(jobId, `job ID should equal ${jobId}`);
     expect(jobs[0].title).toStrictEqual(TITLE, `job title should be ${TITLE}`);
+    expect(jobs[0].tags).toStrictEqual(TAGS, `job tags should be ${TAGS}`);
+    expect(jobs[0].postedBy).toStrictEqual(CREATOR, `job creator should be ${CREATOR}`);
+    expect(jobs[0].createdOn);
   })
 
-  it('should retrieve jobs', () => {
+  it('should create two new jobs', () => {
     const title = 'UI/UX Designer';
 
-    const jobId = post_job(TITLE, DESCRIPTION, TYPE);
-    const nextJobId = post_job(title, DESCRIPTION, TYPE);
+    const jobId = postNewJob(TITLE, DESCRIPTION, TYPE, SALARY, XP, TAGS);
+    const nextJobId = postNewJob(title, DESCRIPTION, TYPE, SALARY, XP, TAGS);
 
-    expect(jobs.length).toBe(2, 'should contain two job');
-    expect(jobs[0].title).toStrictEqual(TITLE, `job title should be ${TITLE}`);
-    expect(jobs[1].title).toStrictEqual(title, `Job title should be ${title}`);
-    expect(jobId).not.toBe(nextJobId, 'Job IDs should be different');
-    expect(jobs[1].postedBy).toBe(Context.sender, 'Sender ID should equal postedBy');
+    expect(jobs.length).toBe(2, 'should contain two jobs');
+    expect(jobs[0].title).toStrictEqual(TITLE, `first job's title should be ${TITLE}`);
+    expect(jobs[1].title).toStrictEqual(title, `second job's title should be ${title}`);
+    expect(jobId).not.toBe(nextJobId, 'first and second job IDs should be different');
+    expect(jobs[1].postedBy).toBe(Context.sender, 'job creator should be postedBy');
   })
 })
 
-describe('Apply to a job', () => {
+describe('ApplyToJob()', () => {
   beforeEach(() => {
     VMContext.setAttached_deposit(GAS);
     VMContext.setSigner_account_id(JOHN);
   });
 
-  it('Should retrieve no applications (empty)', () => {
-    const jobId = post_job(TITLE, DESCRIPTION, TYPE);
-    const currentApplications = applications.get(jobId, []) as ApplicationData;
+  it('should retrieve no applications when none has been created', () => {
+    const jobId = postNewJob(TITLE, DESCRIPTION, TYPE, SALARY, XP, TAGS);
     
-    expect(currentApplications.length).toStrictEqual(0, 'should contain no applications');
+    expect(applications.length).toStrictEqual(0, 'should contain no applications');
   })
 
-  it('A candidate applies to a job', () => {
+  it('should retrieve a job application when it has been created', () => {
     VMContext.setSigner_account_id(CREATOR);
 
-    const jobId = post_job(TITLE, DESCRIPTION, TYPE);
+    const jobId = postNewJob(TITLE, DESCRIPTION, TYPE, SALARY, XP, TAGS);
 
     // Apply as John
     VMContext.setSigner_account_id(JOHN);
-    apply_job(jobId);
+    applyToJob(jobId);
 
-    const currentApplications = applications.get(jobId) as ApplicationData;
-
-    expect(currentApplications.length).toStrictEqual(1, 'Should contain one application');
-    expect(currentApplications[0]).toStrictEqual(Context.sender, 'Should be ID of John');
+    expect(applications.length).toStrictEqual(1, 'Should contain one application');
+    expect(applications[0].applicantId).toStrictEqual(Context.sender, `application sender ID should be ${JOHN}`);
   })
 
-  it('Two candidates apply to the same job', () => {
+  it('should retrieve job applications when they have been created', () => {
     VMContext.setSigner_account_id(CREATOR);
 
-    const jobId = post_job(TITLE, DESCRIPTION, TYPE);
-
-    VMContext.setSigner_account_id(JOHN);
+    const jobId = postNewJob(TITLE, DESCRIPTION, TYPE, SALARY, XP, TAGS);
 
     // Apply as John
-    apply_job(jobId);
+    VMContext.setSigner_account_id(JOHN);
+    applyToJob(jobId);
 
-    let currentApplications = applications.get(jobId) as ApplicationData;
-    
-    expect(currentApplications.length).toBe(1, 'Should contain one application');
-    expect(currentApplications[0]).toStrictEqual(Context.sender, 'Should contain ID of John');
-
-    VMContext.setSigner_account_id(JANE);
     // Apply as Jane
-    apply_job(jobId);
+    VMContext.setSigner_account_id(JANE);
+    applyToJob(jobId);
 
-    currentApplications = applications.get(jobId) as ApplicationData;
-
-    expect(currentApplications.length).toBe(2, 'Should contain two applications');
-    expect(currentApplications[1]).toStrictEqual(Context.sender, 'Should contain ID of Jane');
+    expect(applications.length).toBe(2, 'should contain two applications');
+    expect(applications[0].applicantId).toStrictEqual(JOHN, `first applicant should be ${JOHN}`);
+    expect(applications[1].applicantId).toStrictEqual(JANE, `second applicant should be ${JANE}`);
   })
 })
 
-describe('Fetch jobs', () => {
+describe('getJobById()', () => {
   beforeEach(() => {
     VMContext.setAttached_deposit(GAS);
-    VMContext.setSigner_account_id(JOHN);
+    VMContext.setSigner_account_id(CREATOR);
   });
 
-  it('Should retrieve no jobs', () => {
+  it('should retrieve job details given the job ID', () => {
+    const jobId = postNewJob(TITLE, DESCRIPTION, TYPE, SALARY, XP, TAGS);
+    const jobDetails = getJobById(jobId);
     
-    expect(jobs.length).toStrictEqual(0, 'should contain no jobs');
+    expect(jobDetails.id).toStrictEqual(jobId, 'job ID should match');
+    expect(jobDetails.title).toStrictEqual(TITLE, `job title should be ${TITLE}`);
+    expect(jobDetails.description);
+    expect(jobDetails.type);
+    expect(jobDetails.salary);
+    expect(jobDetails.experience);
+    expect(jobDetails.tags);
+    expect(jobDetails.createdOn);
   })
+})
 
-  it('Should retrieve one job given its ID', () => {
-    const jobId = post_job(TITLE, DESCRIPTION, TYPE);
-    const jobDetails = get_job(jobId);
-    
-    expect(jobDetails.length).toBe(1, 'should contain 1 job');
-    expect(jobDetails[0].title).toStrictEqual(TITLE, `Job title should be ${TITLE}`);
-    expect(jobDetails[0].id).toStrictEqual(jobId, 'Job ID should match');
-  })
+describe('fetchJobs()', () => {
+  beforeEach(() => {
+    VMContext.setAttached_deposit(GAS);
+    VMContext.setSigner_account_id(CREATOR);
+  });
 
-  it('Should retrieve 2 jobs', () => {
+  it('should retrieve all the jobs created', () => {
     const title = 'UI/UX Designer';
-    post_job(TITLE, DESCRIPTION, TYPE);
-    post_job(title, DESCRIPTION, TYPE);
+    postNewJob(TITLE, DESCRIPTION, TYPE, SALARY, XP, TAGS);
+    postNewJob(title, DESCRIPTION, TYPE, SALARY, XP, TAGS);
 
-    const postedJobs = fetch_jobs();
+    const postedJobs = fetchJobs();
     
     expect(postedJobs.length).toBe(2, 'should contain 2 jobs');
-    expect(postedJobs[1].title).toStrictEqual(title, `Job title should be ${title}`);
+    expect(postedJobs[0].title).toStrictEqual(TITLE, `first job title should be ${TITLE}`);
+    expect(postedJobs[1].title).toStrictEqual(title, `second job title should be ${title}`);
+  })
+})
+
+describe('getApplicants()', () => {
+  beforeEach(() => {
+    VMContext.setAttached_deposit(GAS);
+    VMContext.setSigner_account_id(CREATOR);
+  });
+
+  it('should retrieve all the candidates who applied for a job', () => {
+    const jobId = postNewJob(TITLE, DESCRIPTION, TYPE, SALARY, XP, TAGS);
+
+    // Apply as John
+    VMContext.setSigner_account_id(JOHN);
+    applyToJob(jobId);
+
+    // Apply as Jane
+    VMContext.setSigner_account_id(JANE);
+    applyToJob(jobId);
+
+    const candidates = getApplicants(jobId);
+
+    expect(candidates.length).toBe(2, 'should contain 2 applicants');
+    expect(candidates[0].id);
+    expect(candidates[0].submittedOn);
+    expect(candidates[0].jobId).toStrictEqual(jobId, `job ID should be ${jobId}`);
+    expect(candidates[0].applicantId).toStrictEqual(JOHN, `first applicandt ID should be ${JOHN}`);
+    expect(candidates[1].applicantId).toStrictEqual(JANE, `second applicandt ID should be ${JANE}`);
   })
 })
