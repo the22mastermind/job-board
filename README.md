@@ -1,7 +1,18 @@
 job-board
 ==================
 
-This app was initialized with [create-near-app]
+Job-Board is a smart contract decentralized application, running on NEAR Blockchain Protocol, that simplifies the process of hiring candidates for full-time or contract based jobs.
+
+
+Features
+-------------------------------------
+
+1. Create a job post
+2. View jobs posted
+3. View a specific job given its ID
+4. Apply to a job
+5. View candidates who applied to a job
+6. Accept an application
 
 
 How to use
@@ -40,6 +51,10 @@ How to use
       Run `yarn apply` to apply to a job. Before running this command, make sure you copy the returned jobId after running `yarn post` and replace it in `scripts/apply_job.sh`
 
       If you run `yarn apply` again, the application will panic because in a real-life scenario, a candidate cannot apply to the same job more than once.
+      
+      Run `yarn get_applicants` to retrieve all the candidates who applied to a job
+      
+      Run `yarn accept` to accept a candidate's application
 
 
 ToDo
