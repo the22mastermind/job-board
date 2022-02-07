@@ -1,8 +1,8 @@
-import { Context, logging, PersistentVector } from 'near-sdk-as';
-import { Application, Job } from './model';
+import { Context, logging } from 'near-sdk-as';
+import { Job } from './models/job';
+import { Application } from './models/application';
 import { JobID, JobTags } from './utils';
 import { jobs, applications } from './storage';
-import { generateId } from './helper';
 
 
 // CHANGE METHODS (They change contract state)
@@ -12,24 +12,18 @@ import { generateId } from './helper';
  * @param title 
  * @param description 
  * @param jobType
+ * @param salary
+ * @param experience
+ * @param tags
  * @returns JobID
  */
 export function postNewJob(title: string, description: string, jobType: string, salary: string, experience: string, tags: JobTags): JobID {
-  let jobId: string;
-  const currentJobIds: string[] = [];
-
-  for(let i = 0; i < jobs.length; i++) {
-    currentJobIds.push(jobs[i].id);
-  }
-
-  jobId = generateId('JOB-', currentJobIds);
-
-  const job = new Job(jobId, title, description, jobType, salary, experience, tags);
+  const job = new Job(title, description, jobType, salary, experience, tags);
   
   logging.log(`Job: "${title}" created by "${job.postedBy}"`);
   jobs.push(job);
 
-  return jobId;
+  return job.id;
 }
 
 /**
@@ -38,23 +32,17 @@ export function postNewJob(title: string, description: string, jobType: string, 
  */
 export function applyToJob(jobId: JobID): void {
   const applicant = Context.sender;
-  let applicationId: string;
-  const currentApplicationIds: string[] = [];
 
   for(let i = 0; i < applications.length; i++) {
     // Check if applicant hasn't already applied to a job
     assert(applications[i].applicantId != applicant, 'You have already applied to this job!');
-
-    currentApplicationIds.push(applications[i].id);
   }
-
-  applicationId = generateId('APPL-', currentApplicationIds);
 
   // Check if applicant is not the Job creator
   const jobDetails = getJobById(jobId);
   checkApplicantIsNotOwner(jobDetails.postedBy);
 
-  const newApplication = new Application(applicationId, jobId);
+  const newApplication = new Application(jobId);
 
   applications.push(newApplication);
 
@@ -67,7 +55,7 @@ export function applyToJob(jobId: JobID): void {
 /**
  * Retrieves a job by its ID
  * @param jobId
- * @returns job details from an array of all the jobs
+ * @returns job details
  */
 export function getJobById(jobId: JobID): Job {
   checkJobsExist(jobId);
@@ -84,15 +72,21 @@ export function getJobById(jobId: JobID): Job {
  * Fetch all the jobs
  * @returns An array of all the jobs
  */
-export function fetchJobs(): PersistentVector<Job> {
-  return jobs;
+export function fetchJobs(): Job[] {
+  let postedJobs: Job[] = [];
+  for(let i = 0; i < jobs.length; i++) {
+    if(jobs[i]) {
+      postedJobs.push(jobs[i]);
+    }
+  }
+  return postedJobs;
 }
 
 /**
  * Fetch applications submitted for a job
  * @returns An array of applications for a job
  */
-export function getApplicants(jobId: JobID): Application[]{
+export function getApplicants(jobId: JobID): Application[] {
   let candidates: Application[] = [];
   for(let i = 0; i < applications.length; i++) {
     if(applications[i].jobId == jobId) {

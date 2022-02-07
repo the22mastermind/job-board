@@ -5,15 +5,19 @@
   "scripts": {
     "build": "npm run build:contract",
     "build:contract": "node contract/compile.js",
-    "build:contract:debug": "node contract/compile.js --debug",
-    "dev:deploy:contract": "near dev-deploy",
+    "build:contract:debug": "cd contract && yarn && cd .. && node contract/compile.js --debug",
+    "dev:deploy": "yarn build:contract:debug && near dev-deploy",
     "deploy:contract": "near deploy",
     "deploy": "npm run build && npm run deploy:contract",
-    "test": "npm run build:contract:debug && cd contract && npm run test && cd ..",
-    "post_job": "bash ./scripts/post_job.sh",
-    "get_job": "bash ./scripts/get_job.sh",
-    "fetch_jobs": "bash ./scripts/fetch_jobs.sh",
-    "apply_job": "bash ./scripts/apply_job.sh"
+    "prestart": "npm run build:contract:debug && npm run dev:deploy",
+    "start": "echo The app is starting! It will automatically open in your browser when ready && env-cmd -f ./neardev/dev-account.env parcel src/index.html --open",
+    "dev": "nodemon --watch contract -e ts --exec \"npm run start\"",
+    "test": "npm run build:contract:debug && cd contract && npm run test && cd .. && jest test --runInBand",
+    "post": "bash ./scripts/post_job.sh",
+    "get": "bash ./scripts/get_job.sh",
+    "fetch": "bash ./scripts/fetch_jobs.sh",
+    "apply": "bash ./scripts/apply_job.sh",
+    "get_applicants": "bash ./scripts/get_applicants.sh"
   },
   "devDependencies": {
     "env-cmd": "~10.1.0",
@@ -33,7 +37,8 @@
     "testEnvironment": "near-cli/test_environment",
     "testPathIgnorePatterns": [
       "<rootDir>/contract/",
-      "<rootDir>/node_modules/"
+      "<rootDir>/node_modules/",
+      "<rootDir>/src/"
     ]
   }
 }

@@ -4,10 +4,10 @@ job-board
 This app was initialized with [create-near-app]
 
 
-Step 0: Installation
+How to use
 -------------------------------------
 
-1. Clone this repo
+1. Clone this repo then run `cd job-board`
 
 2. Run `yarn` to instal dependencies
 
@@ -15,9 +15,9 @@ Step 0: Installation
 
 4. Authorize NEAR CLI, following the commands it gives you:
 
-      near login
+      Run `near login`
 
-5. Run `near dev-deploy out/main.wasm` to deploy the contract on testnet
+5. Run `yarn dev:deploy` to deploy the contract on testnet
 
 6. Copy the Account_id in the returned response. It looks like: `dev-1643744622686-69960108730252`. This is our contract name
 
@@ -29,28 +29,46 @@ Step 0: Installation
 
 10. Run `export APPLICANT_ACCOUNT_ID=APPLICANT_ACCOUNT_ID.testnet`
 
-11. Deploy the contract to testnet
+11. Interract with the deployed contract using scripts:
       
-      Run `yarn dev:deploy:contract`
-
-12. Interract with the deployed contract using scripts:
+      Run `yarn post` to create a new job
       
-      Run `yarn post_job` to create a new job
-      
-      Run `yarn fetch_jobs` to retrieve all the jobs
+      Run `yarn fetch` to retrieve all the jobs posted
 
-      Run `yarn get_job` to retrieve a job by its ID
+      Run `yarn get` to retrieve a job by its ID. Before running this command, make sure you copy the returned jobId after running `yarn post` and replace it in `scripts/get_job.sh`
 
-      Run `yarn apply_job` to apply to a job
+      Run `yarn apply` to apply to a job. Before running this command, make sure you copy the returned jobId after running `yarn post` and replace it in `scripts/apply_job.sh`
+
+      If you run `yarn apply` again, the application will panic because in a real-life scenario, a candidate cannot apply to the same job more than once.
+
+
+ToDo
+-------------------------------------
+
+1. Create a smart contract to hold applicants details and implement cross-contract calls
+
+2. Build React frontend for this [Mockup](https://www.figma.com/proto/l7TLJFbryvwadCpnnDjGFO/Job-Board?node-id=1%3A2&scaling=scale-down&page-id=0%3A1&starting-point-node-id=1%3A2)
+
+2. Connect frontend to smart contract
+
+
+Credits
+-------------------------------------
+
+Author: Bertrand
 
 
 References
 -------------------------------------
   
-[create-near-app]: https://github.com/near/create-near-app
-[Node.js]: https://nodejs.org/en/download/package-manager/
-[jest]: https://jestjs.io/
-[NEAR accounts]: https://docs.near.org/docs/concepts/account
-[NEAR Wallet]: https://wallet.testnet.near.org/
-[near-cli]: https://github.com/near/near-cli
-[gh-pages]: https://github.com/tschaub/gh-pages
+[create-near-app](https://github.com/near/create-near-app)
+
+[Node.js](https://nodejs.org/en/download/package-manager/)
+
+[jest](https://jestjs.io/)
+
+[NEAR accounts](https://docs.near.org/docs/concepts/account)
+
+[NEAR Wallet](https://wallet.testnet.near.org/)
+
+[near-cli](https://github.com/near/near-cli)
