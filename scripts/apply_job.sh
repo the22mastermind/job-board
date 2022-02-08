@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
-near call $CONTRACT_NAME applyToJob '{"jobId": "JOB-849814765"}' --accountId $APPLICANT_ACCOUNT_ID --amount 0.5
+# Create candidate's profile
+near call $CONTRACT_NAME createCandidateProfile '{"firstName": "John", "lastName": "Doe", "email": "johndoe@mail.com"}' --accountId $APPLICANT_ACCOUNT_ID --amount 0.5
+
+# Apply to a job
+near call $CONTRACT_NAME applyToJob '{"jobId": "JOB-3875970732"}' --accountId $APPLICANT_ACCOUNT_ID --amount 0.5
 
 exit 0

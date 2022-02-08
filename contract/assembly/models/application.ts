@@ -1,34 +1,28 @@
-import { Context, RNG } from 'near-sdk-as';
 import { JobID } from "../utils";
+import { Candidate } from './candidate';
 
 
 /**
  * @class Application
  * @property id           - unique application id
  * @property jobId        - job id
- * @property applicantId  - candidate id
+ * @property applicant    - candidate profile
+ * @property status       - application status. (Submitted, Viewed, or Accepted)
  * @property submittedOn  - date the application was submitted on
  */
 @nearBindgen
 export class Application {
     id: string;
     jobId: JobID;
-    applicantId: string;
+    applicant: Candidate;
+    status: string;
     submittedOn: u64;
 
-    constructor(jobId: JobID) {
-        this.id = this.generateApplicationId();
+    constructor(id: string, jobId: JobID, applicant: Candidate, status: string, submittedOn: u64) {
+        this.id = id;
         this.jobId = jobId;
-        this.applicantId = Context.sender;
-        this.submittedOn = Context.blockTimestamp;
-    }
-
-    /**
-     * Generates a new applicantion id and returns it.
-     */
-     private generateApplicationId(): string {
-        const id = new RNG<u32>(3, u32.MAX_VALUE);
-        const applicationId = "APPL-" + id.next().toString();
-        return applicationId;
+        this.applicant = applicant;
+        this.status = status;
+        this.submittedOn = submittedOn;
     }
 }

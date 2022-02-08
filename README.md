@@ -10,9 +10,11 @@ Features
 1. Create a job post
 2. View jobs posted
 3. View a specific job given its ID
-4. Apply to a job
-5. View candidates who applied to a job
-6. Accept an application
+4. Create candidate's profile
+5. Apply to a job
+6. View candidates who applied to a job
+7. View an application
+8. Accept an application
 
 
 How to use
@@ -46,21 +48,25 @@ How to use
       
       Run `yarn fetch` to retrieve all the jobs posted
 
-      Run `yarn get` to retrieve a job by its ID. Before running this command, make sure you copy the returned jobId after running `yarn post` and replace it in `scripts/get_job.sh`
+      Run `yarn get` to retrieve a job by its ID. Before running this command, make sure you copy the returned jobId after running `yarn post` and replace it in `scripts/get_job.sh`.
 
-      Run `yarn apply` to apply to a job. Before running this command, make sure you copy the returned jobId after running `yarn post` and replace it in `scripts/apply_job.sh`
+      Run `yarn apply` to apply to a job. Before running this command, make sure you copy the returned jobId after running `yarn post` and replace it in `scripts/apply_job.sh`.
 
       If you run `yarn apply` again, the application will panic because in a real-life scenario, a candidate cannot apply to the same job more than once.
+
+      Inside `scripts/apply_job.sh` we are running two commands. The first creates a candidate's profile since a profile is required before being able to apply to jobs. The second command applies to a job.
       
       Run `yarn get_applicants` to retrieve all the candidates who applied to a job
       
-      Run `yarn accept` to accept a candidate's application
+      Replace `applicationId` and `jobId` in `view_application.sh` with real values then run `yarn view_application` to view a candidate's application.
+
+      Replace `applicationId` and `jobId` in `accept_application.sh` with real values then run `yarn accept_application` to accept a candidate's application.
 
 
 ToDo
 -------------------------------------
 
-1. Create a smart contract to hold applicants details and implement cross-contract calls
+1. Create a smart contract to hold employers details and implement cross-contract calls to Jobs
 
 2. Build React frontend for this [Mockup](https://www.figma.com/proto/l7TLJFbryvwadCpnnDjGFO/Job-Board?node-id=1%3A2&scaling=scale-down&page-id=0%3A1&starting-point-node-id=1%3A2)
 

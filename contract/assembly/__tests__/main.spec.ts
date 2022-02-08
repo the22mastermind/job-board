@@ -1,5 +1,13 @@
 import { Context, VMContext } from 'near-sdk-as';
-import { postNewJob, applyToJob, fetchJobs, getJobById, getApplicants } from '..';
+import {
+  postNewJob,
+  applyToJob,
+  fetchJobs,
+  getJobById,
+  getApplicants,
+  createCandidateProfile,
+  updateApplicationStatus,
+} from '..';
 import { jobs, applications } from '../storage';
 import { GAS } from '../utils';
 
@@ -16,7 +24,6 @@ const TAGS = [
   'React',
   'NEAR',
 ];
-
 const JOHN = 'john.testnet';
 const JANE = 'jane.testnet';
 
@@ -68,12 +75,23 @@ describe('ApplyToJob()', () => {
 
     const jobId = postNewJob(TITLE, DESCRIPTION, TYPE, SALARY, XP, TAGS);
 
-    // Apply as John
+    // Log in as John
     VMContext.setSigner_account_id(JOHN);
+
+    // Create candidates's profile
+    createCandidateProfile('John', 'Doe', 'johndoe@mail.com');
+
+    // Apply as John
     applyToJob(jobId);
 
     expect(applications.length).toStrictEqual(1, 'Should contain one application');
-    expect(applications[0].applicantId).toStrictEqual(Context.sender, `application sender ID should be ${JOHN}`);
+    expect(applications[0].applicant.accountId).toStrictEqual(Context.sender, `application sender ID should be ${JOHN}`);
+    expect(applications[0].id);
+    expect(applications[0].jobId);
+    expect(applications[0].jobId).toStrictEqual(jobId, `job id should be ${jobId}`);
+    expect(applications[0].status);
+    expect(applications[0].status).toStrictEqual('Submitted', 'application status should be `Submitted`');
+    expect(applications[0].submittedOn);
   })
 
   it('should retrieve job applications when they have been created', () => {
@@ -81,17 +99,27 @@ describe('ApplyToJob()', () => {
 
     const jobId = postNewJob(TITLE, DESCRIPTION, TYPE, SALARY, XP, TAGS);
 
-    // Apply as John
+    // Login as John
     VMContext.setSigner_account_id(JOHN);
+
+    // Create candidate's profile
+    createCandidateProfile('John', 'Doe', 'johndoe@mail.com');
+
+    // Apply as John
     applyToJob(jobId);
 
-    // Apply as Jane
+    // Login as Jane
     VMContext.setSigner_account_id(JANE);
+
+    // Create candidate's profile
+    createCandidateProfile('Jane', 'Doe', 'janedoe@mail.com');
+    
+    // Apply as Jane
     applyToJob(jobId);
 
     expect(applications.length).toBe(2, 'should contain two applications');
-    expect(applications[0].applicantId).toStrictEqual(JOHN, `first applicant should be ${JOHN}`);
-    expect(applications[1].applicantId).toStrictEqual(JANE, `second applicant should be ${JANE}`);
+    expect(applications[0].applicant.accountId).toStrictEqual(JOHN, `first applicant should be ${JOHN}`);
+    expect(applications[1].applicant.accountId).toStrictEqual(JANE, `second applicant should be ${JANE}`);
   })
 })
 
@@ -144,21 +172,90 @@ describe('getApplicants()', () => {
   it('should retrieve all the candidates who applied for a job', () => {
     const jobId = postNewJob(TITLE, DESCRIPTION, TYPE, SALARY, XP, TAGS);
 
-    // Apply as John
+    // Login as John
     VMContext.setSigner_account_id(JOHN);
+
+    // Create profile
+    createCandidateProfile('John', 'Doe', 'johndoe@mail.com');
+    
+    // Apply as John
     applyToJob(jobId);
 
-    // Apply as Jane
+    // Login as Jane
     VMContext.setSigner_account_id(JANE);
+
+    // Create profile
+    createCandidateProfile('Jane', 'Doe', 'janedoe@mail.com');
+    
+    // Apply as Jane
     applyToJob(jobId);
 
-    const candidates = getApplicants(jobId);
+    const receivedApplications = getApplicants(jobId);
 
-    expect(candidates.length).toBe(2, 'should contain 2 applicants');
-    expect(candidates[0].id);
-    expect(candidates[0].submittedOn);
-    expect(candidates[0].jobId).toStrictEqual(jobId, `job ID should be ${jobId}`);
-    expect(candidates[0].applicantId).toStrictEqual(JOHN, `first applicandt ID should be ${JOHN}`);
-    expect(candidates[1].applicantId).toStrictEqual(JANE, `second applicandt ID should be ${JANE}`);
+    expect(receivedApplications.length).toBe(2, 'should contain 2 applications from 2 different candidates');
+    expect(receivedApplications[0].id);
+    expect(receivedApplications[0].submittedOn);
+    expect(receivedApplications[0].jobId).toStrictEqual(jobId, `job ID should be ${jobId}`);
+    expect(receivedApplications[0].applicant.accountId).toStrictEqual(JOHN, `first applicandt ID should be ${JOHN}`);
+    expect(receivedApplications[1].applicant.accountId).toStrictEqual(JANE, `second applicandt ID should be ${JANE}`);
+  })
+})
+
+describe('updateApplicationStatus()', () => {
+  beforeEach(() => {
+    VMContext.setAttached_deposit(GAS);
+    VMContext.setSigner_account_id(CREATOR);
+  });
+
+  it('should update an application status to "Viewed"', () => {
+    const jobId = postNewJob(TITLE, DESCRIPTION, TYPE, SALARY, XP, TAGS);
+
+    // Login as John
+    VMContext.setSigner_account_id(JOHN);
+
+    // Create profile
+    createCandidateProfile('John', 'Doe', 'johndoe@mail.com');
+    
+    // Apply as John
+    applyToJob(jobId);
+
+    // Login as job creator
+    VMContext.setSigner_account_id(CREATOR);
+
+    const receivedApplications = getApplicants(jobId);
+
+    // Mark application as 'Viewed'
+    updateApplicationStatus(receivedApplications[0].id, jobId, 'Viewed');
+    
+    expect(applications[0].id);
+    expect(applications[0].status).toStrictEqual('Viewed', 'Updated application status should equal "Viewed"');
+    expect(applications[0].jobId).toStrictEqual(jobId, `job ID should be ${jobId}`);
+    expect(applications[0].applicant.accountId).toStrictEqual(JOHN, `first applicandt ID should be ${JOHN}`);
+  })
+
+  it('should update an application status to "Accepted"', () => {
+    const jobId = postNewJob(TITLE, DESCRIPTION, TYPE, SALARY, XP, TAGS);
+
+    // Login as John
+    VMContext.setSigner_account_id(JOHN);
+
+    // Create profile
+    createCandidateProfile('John', 'Doe', 'johndoe@mail.com');
+    
+    // Apply as John
+    applyToJob(jobId);
+
+    // Login as job creator
+    VMContext.setSigner_account_id(CREATOR);
+
+    const receivedApplications = getApplicants(jobId);
+
+    // Mark application as 'Viewed'
+    updateApplicationStatus(receivedApplications[0].id, jobId, 'Accepted');
+    
+    expect(applications[0].id);
+    expect(applications[0].status).toStrictEqual('Accepted', 'Updated application status should equal "Accepted"');
+    expect(applications[0].jobId).toStrictEqual(jobId, `job ID should be ${jobId}`);
+    expect(applications[0].applicant.accountId).toStrictEqual(JOHN, `first applicandt ID should be ${JOHN}`);
   })
 })
