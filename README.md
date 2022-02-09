@@ -63,20 +63,22 @@ How to use
       Replace `applicationId` and `jobId` in `accept_application.sh` with real values then run `yarn accept_application` to accept a candidate's application.
 
 
-ToDo
+Future improvements
 -------------------------------------
 
 1. Create a smart contract to hold employers details and implement cross-contract calls to Jobs
 
-2. Build React frontend for this [Mockup](https://www.figma.com/proto/l7TLJFbryvwadCpnnDjGFO/Job-Board?node-id=1%3A2&scaling=scale-down&page-id=0%3A1&starting-point-node-id=1%3A2)
+2. Create a smart contract to hold candidates CVs and implement cross-contract calls to Candidate
 
-2. Connect frontend to smart contract
+3. Build a React frontend for this [Mockup](https://www.figma.com/proto/l7TLJFbryvwadCpnnDjGFO/Job-Board?node-id=1%3A2&scaling=scale-down&page-id=0%3A1&starting-point-node-id=1%3A2)
+
+4. Connect frontend to smart contracts
 
 
-Credits
+Contributors
 -------------------------------------
 
-Author: Bertrand
+[Bertrand](https://github.com/the22mastermind)
 
 
 References
