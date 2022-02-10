@@ -4,6 +4,9 @@ job-board
 Job-Board is a smart contract decentralized application, running on NEAR Blockchain Protocol, that simplifies the process of hiring candidates for full-time or contract based jobs.
 
 
+[Demo Video](https://www.loom.com/share/75fb5a9da55d4b008bb87fe8990d5520)
+
+
 Features
 -------------------------------------
 
@@ -17,6 +20,12 @@ Features
 8. Accept an application
 
 
+Getting started
+-------------------------------------
+
+Make sure you have [Node.js](https://nodejs.org/en/download/package-manager/) 14+ installed and [near-cli](https://github.com/near/near-cli)
+
+
 How to use
 -------------------------------------
 
@@ -26,23 +35,23 @@ How to use
 
 3. Run `yarn test` to run tests
 
-4. Authorize NEAR CLI, following the commands it gives you:
+4. Create two different accounts at [https://wallet.testnet.near.org/](https://wallet.testnet.near.org/). One to simulate an employer and another one to simulate a job seeker.
 
-      Run `near login`
+      Run `near login` and login with the employer account.
 
-5. Run `yarn dev:deploy` to deploy the contract on testnet
+      Run `near login` again to login with the job seeker account as well.
+
+      Run `export ACCOUNT_ID=EMPLOYER_ACCOUNT`. Replace EMPLOYER_ACCOUNT with the employer account created above.
+
+      Run `export APPLICANT_ACCOUNT_ID=JOB_SEEKER_ACCOUNT`. Replace JOB_SEEKER_ACCOUNT with the job seeker account created above.
+
+5. Run `yarn dev:deploy` to deploy the contract on testnet.
 
 6. Copy the Account_id in the returned response. It looks like: `dev-1643744622686-69960108730252`. This is our contract name
 
 7. Run `export CONTRACT_NAME=ACCOUNT_ID_COPIED_ABOVE`
 
-8. Run `export ACCOUNT_ID=YOUR-NAME.testnet`
-
-9. Head over `https://wallet.testnet.near.org/` and create a new account to use as APPLICANT_ACCOUNT_ID
-
-10. Run `export APPLICANT_ACCOUNT_ID=APPLICANT_ACCOUNT_ID.testnet`
-
-11. Interract with the deployed contract using scripts:
+8. Interract with the deployed contract using scripts:
       
       Run `yarn post` to create a new job
       
