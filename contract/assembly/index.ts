@@ -1,8 +1,9 @@
-import { Context, logging } from 'near-sdk-as';
+import { Context, logging, RNG } from 'near-sdk-as';
 import { Job } from './models/job';
 import { Application } from './models/application';
+import { Candidate } from './models/candidate';
 import { JobID, JobTags } from './utils';
-import { jobs, applications } from './storage';
+import { jobs, applications, candidates } from './storage';
 
 
 // CHANGE METHODS (They change contract state)
@@ -18,7 +19,10 @@ import { jobs, applications } from './storage';
  * @returns JobID
  */
 export function postNewJob(title: string, description: string, jobType: string, salary: string, experience: string, tags: JobTags): JobID {
-  const job = new Job(title, description, jobType, salary, experience, tags);
+  // Generate job ID
+  const id = generateJobId('JOB-');
+
+  const job = new Job(id, title, description, jobType, salary, experience, tags);
   
   logging.log(`Job: "${title}" created by "${job.postedBy}"`);
   jobs.push(job);
@@ -31,23 +35,75 @@ export function postNewJob(title: string, description: string, jobType: string, 
  * @param jobId
  */
 export function applyToJob(jobId: JobID): void {
-  const applicant = Context.sender;
+  const accountId = Context.sender;
+  const applicant = candidates.get(accountId) as Candidate;
+
+  // Candidate should complete their profile before applying to jobs
+  if(!applicant) {
+    throw new Error("You must complete your profile before applying to jobs!");
+  }
 
   for(let i = 0; i < applications.length; i++) {
     // Check if applicant hasn't already applied to a job
-    assert(applications[i].applicantId != applicant, 'You have already applied to this job!');
+    assert(applications[i].applicant.accountId != applicant.accountId, 'You have already applied to this job!');
   }
 
   // Check if applicant is not the Job creator
   const jobDetails = getJobById(jobId);
   checkApplicantIsNotOwner(jobDetails.postedBy);
 
-  const newApplication = new Application(jobId);
+  // Generate application ID
+  const id = generateApplicationId('APPL-');
+
+  const newApplication = new Application(id, jobId, applicant, 'Submitted', Context.blockTimestamp);
 
   applications.push(newApplication);
 
   logging.log(`Application submitted successfully!`);
 }
+
+/**
+ * Creates a candidate profile and returns it
+ * @param firstName 
+ * @param lastName 
+ * @param email
+ * @returns Candidate
+ */
+ export function createCandidateProfile(firstName: string, lastName: string, email: string): Candidate {
+   const accountId = Context.sender;
+
+  //  Initialize candidate profile
+  const candidate = new Candidate(firstName, lastName, email);
+
+  candidates.set(accountId, candidate);
+  
+  logging.log(`"${candidate.firstName}"'s profile created successfully!`);
+
+  return candidate;
+}
+
+/**
+ * Update application status (Viewed or Accepted)
+ * @param applicationId
+ * @param jobId
+ * @param status
+ */
+ export function updateApplicationStatus(applicationId: string, jobId: string, status: string): void {
+   // Retrieve job
+   const jobDetails = getJobById(jobId);
+
+  // Retrieve application
+  for(let i = 0; i <  applications.length; i++) {
+    // Check applicationId and Job creator
+    if(applications[i].id == applicationId && jobDetails.postedBy == Context.sender) {
+      const updatedApplication = new Application(applications[i].id, applications[i].jobId, applications[i].applicant, status, applications[i].submittedOn);
+      applications.replace(i, updatedApplication);
+    }
+  }
+
+ logging.log(`Application ID: "${applicationId}" status updated to "${status}" successfully!`);
+}
+
 
 
 // VIEW METHODS  (They don't change contract state)
@@ -113,4 +169,34 @@ function checkJobsExist(jobId: JobID): void {
  */
  function checkApplicantIsNotOwner(postedBy: string): void {
   assert(Context.sender != postedBy, "You cannot apply to your own Job! Please sign in with another account");
+}
+
+/**
+ * Generate new job id
+ * @returns generated job ID
+ */
+function generateJobId(prefix: string): string {
+  const id = new RNG<u32>(3, u32.MAX_VALUE);
+  const newId = prefix + id.next().toString();
+  for(let i = 0; i < jobs.length; i++) {
+    if(jobs[i].id == newId) {
+      generateJobId(prefix);
+    }
+  }
+  return newId;
+}
+
+/**
+ * Generate new application id
+ * @returns generated application ID
+ */
+function generateApplicationId(prefix: string): string {
+  const id = new RNG<u32>(3, u32.MAX_VALUE);
+  const newId = prefix + id.next().toString();
+  for(let i = 0; i < applications.length; i++) {
+    if(applications[i].id == newId) {
+      generateApplicationId(prefix);
+    }
+  }
+  return newId;
 }

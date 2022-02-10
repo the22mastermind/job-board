@@ -1,26 +1,39 @@
 job-board Smart Contract
 ==================
 
-A [smart contract] written in [AssemblyScript] for an app initialized with [create-near-app]
-
-
-Quick Start
-===========
-
-Before you compile this code, you will need to install [Node.js] ≥ 12
+A Smart Contract for a Job Board DApp using the NEAR Blockchain Protocol.
 
 
 Exploring The Code
 ==================
 
-1. The main smart contract code lives in `assembly/index.ts`. You can compile
-   it with the `./compile` script.
-2. Tests: You can run smart contract tests with the `./test` script. This runs
-   standard AssemblyScript tests using [as-pect].
+1. The main smart contract code lives in `assembly/index.ts`
+
+2. The models are defined in `assembly/models/` and storage in `assembly/storage.ts`
 
 
-  [smart contract]: https://docs.near.org/docs/develop/contracts/overview
-  [AssemblyScript]: https://www.assemblyscript.org/
-  [create-near-app]: https://github.com/near/create-near-app
-  [Node.js]: https://nodejs.org/en/download/package-manager/
-  [as-pect]: https://www.npmjs.com/package/@as-pect/cli
+Public functions
+==================
+
+1. **postNewJob()**: Allows the creation of a new job post
+
+2. **applyToJob()**: Allows a candidate to apply to a job
+
+3. **createCandidateProfile()**: Allows a candidate to create a profile which is a requirement before applying for jobs
+
+4. **updateApplicationStatus()**:
+
+   - Sets the candidate's application status to "Viewed" when a job creator views it
+
+   - Allows the job creator to accept a candidate's application
+
+
+Public functions
+==================
+
+1. **getJobById()**: Retrieves a job details given job ID
+
+2. **fetchJobs()**: Retrieves all the jobs posted
+
+3. **getApplicants()**: Retrieves candidate applications for a specific job.
+

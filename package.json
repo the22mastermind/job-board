@@ -17,7 +17,9 @@
     "get": "bash ./scripts/get_job.sh",
     "fetch": "bash ./scripts/fetch_jobs.sh",
     "apply": "bash ./scripts/apply_job.sh",
-    "get_applicants": "bash ./scripts/get_applicants.sh"
+    "get_applicants": "bash ./scripts/get_applicants.sh",
+    "view_application": "bash ./scripts/view_application.sh",
+    "accept_application": "bash ./scripts/accept_application.sh"
   },
   "devDependencies": {
     "env-cmd": "~10.1.0",
