@@ -39,7 +39,6 @@ if (code === 0 && calledFromDir !== __dirname) {
   const linkDir = `${calledFromDir}/out`
   const packageName = require(`${__dirname}/package.json`).name
   const link = `${calledFromDir}/out/${packageName}.wasm`
-  // const packageName = require(`${__dirname}/package.json`).name
   const outFile = `./build/${debug ? 'debug' : 'release'}/${packageName}.wasm`
   sh.mkdir('-p', linkDir)
   sh.rm('-f', link)
